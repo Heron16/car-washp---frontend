@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# ============================================================
+#  Hook: commit-msg
+#  Valida a mensagem de commit com commitlint
+#  Formato esperado: <tipo>(<escopo>): <descrição>
+#  Ex: feat(auth): adiciona login com Google
+# ============================================================
+
+npx --no -- commitlint --edit "$1"

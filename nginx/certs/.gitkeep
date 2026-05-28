@@ -1,0 +1,3 @@
+# Este diretório armazena os certificados gerados pelo mkcert.
+# Os arquivos .pem e .key são ignorados pelo .gitignore — não commite certificados.
+# Execute: scripts/gerar-certificado.sh (Linux/Mac) ou scripts/gerar-certificado.ps1 (Windows)
