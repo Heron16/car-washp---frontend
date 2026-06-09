@@ -64,8 +64,9 @@ export function NewAppointmentPage() {
       await api.post('/appointments', { veiculoId, servicoId, agendadoPara, observacoes });
       toast.success('Agendamento realizado!');
       navigate('/dashboard/agendamentos');
-    } catch (err: ErroApi) {
-      toast.error(err?.response?.data?.mensagem || 'Erro ao agendar');
+    } catch (err: unknown) {
+      const e = err as ErroApi;
+      toast.error(e?.response?.data?.mensagem || 'Erro ao agendar');
     } finally { setLoading(false); }
   };
 

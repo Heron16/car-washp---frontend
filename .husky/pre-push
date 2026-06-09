@@ -6,7 +6,7 @@
 # ============================================================
 
 echo "🧪 Executando testes E2E antes do push..."
-echo "   (Certifique-se de que a aplicação está rodando em https://meuapp.local)"
+echo "   (Certifique-se de que a aplicação está rodando em https://lavacar-ph.local)"
 echo ""
 
 cd e2e && npm test

@@ -5,7 +5,7 @@ import * as path from 'path';
 // Carrega variáveis de ambiente do .env na raiz do e2e
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const BASE_URL = process.env.E2E_BASE_URL || 'https://meuapp.local';
+const BASE_URL = process.env.E2E_BASE_URL || 'https://lavacar-ph.local';
 
 export default defineConfig({
   testDir: './tests',

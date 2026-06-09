@@ -1,158 +1,93 @@
-# AquaWash — Sistema de Agendamento de Lavagem de Veículos
+# AquaWash 🚗💧
 
-Stack: React + Express + MySQL + Docker + Nginx (HTTPS)
-
----
-
-## Estrutura do Projeto
-
-```
-car-wash/
-├── backend/          # API Express + Sequelize + TypeScript
-├── frontend/         # React + Vite + Tailwind CSS
-├── e2e/              # Testes end-to-end com Playwright
-├── nginx/
-│   ├── nginx.conf    # Proxy reverso + HTTPS + headers de segurança
-│   └── certs/        # Certificados mkcert (não commitados)
-├── scripts/
-│   ├── gerar-certificado.sh   # Linux/Mac
-│   └── gerar-certificado.ps1  # Windows
-├── docker-compose.yml
-├── .env.example
-└── commitlint.config.js
-```
+Sistema de agendamento de lavagem de veículos — React + Express + MySQL + Docker.
 
 ---
 
 ## Pré-requisitos
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [mkcert](https://github.com/FiloSottile/mkcert) — para certificado HTTPS local
-- [Node.js 20+](https://nodejs.org/) — para Husky e testes E2E
-- [Git](https://git-scm.com/)
+| Ferramenta | Versão mínima | Instalação |
+|---|---|---|
+| Docker Desktop | 24+ | https://www.docker.com/products/docker-desktop |
+| mkcert | qualquer | `winget install FiloSottile.mkcert` |
+| Node.js | 20+ | https://nodejs.org (apenas para dev local) |
+| Git | qualquer | https://git-scm.com |
 
 ---
 
-## Configuração inicial
+## Configuração inicial (apenas na primeira vez)
 
-### 1. Variáveis de ambiente
-
-```bash
-cp .env.example .env
-```
-
-Edite o `.env` com suas senhas. **Nunca commite o `.env` real.**
-
-### 2. Certificado HTTPS local (mkcert)
-
-**Windows (PowerShell como Administrador):**
-```powershell
-winget install FiloSottile.mkcert
-.\scripts\gerar-certificado.ps1
-```
-
-**Linux/Mac:**
-```bash
-# Instale mkcert: https://github.com/FiloSottile/mkcert#installation
-chmod +x scripts/gerar-certificado.sh
-./scripts/gerar-certificado.sh
-```
-
-### 3. Adicionar host local
-
-**Windows** — edite `C:\Windows\System32\drivers\etc\hosts` como Administrador:
-```
-127.0.0.1  meuapp.local
-```
-
-**Linux/Mac** — edite `/etc/hosts`:
-```
-127.0.0.1  meuapp.local
-```
-
-### 4. Instalar dependências (Husky + commitlint)
+### 1. Clonar e instalar dependências raiz
 
 ```bash
+git clone <url-do-repositorio>
+cd car-wash
 npm install
 ```
 
+### 2. Criar o arquivo `.env` na raiz
+
+Copie o exemplo e preencha as variáveis:
+
+```bash
+copy .env.example .env
+```
+
+O `.env` padrão já funciona para desenvolvimento local:
+
+```env
+MYSQL_ROOT_PASSWORD=rootpassword123
+MYSQL_DATABASE=carwash
+MYSQL_USER=carwash_user
+MYSQL_PASSWORD=carwash_pass123
+
+PORT=3001
+DATABASE_URL=mysql://carwash_user:carwash_pass123@mysql:3306/carwash
+JWT_SECRET=carwash_super_secret_jwt_key_2024
+JWT_EXPIRES_IN=7d
+
+VITE_API_URL=https://lavacar-ph.local/api
+```
+
+> ⚠️ O arquivo `.env` **nunca deve ser commitado**. Ele já está no `.gitignore`.
+
+### 3. Gerar o certificado SSL local (mkcert)
+
+Execute o PowerShell **como Administrador**:
+
+```powershell
+.\scripts\gerar-certificado.ps1
+```
+
+Isso gera `nginx/certs/lavacar-ph.local.pem` e `nginx/certs/lavacar-ph.local-key.pem`.
+
+### 4. Adicionar o host local
+
+Edite `C:\Windows\System32\drivers\etc\hosts` **como Administrador** e adicione:
+
+```
+127.0.0.1  lavacar-ph.local
+```
+
 ---
 
-## Rodando com Docker
+## Subir a aplicação via Docker
 
 ```bash
 docker compose up --build
 ```
 
-Acesse: **https://meuapp.local**
+Aguarde todos os serviços ficarem saudáveis (~1 minuto na primeira vez).
 
-O Nginx redireciona automaticamente HTTP → HTTPS.
+Acesse: **https://lavacar-ph.local**
 
-### Comandos úteis
+> O Nginx redireciona automaticamente HTTP → HTTPS.
 
-```bash
-# Subir em background
-docker compose up -d --build
+### Credenciais padrão (seed)
 
-# Ver logs
-docker compose logs -f
-
-# Parar tudo
-docker compose down
-
-# Parar e remover volumes (apaga dados do MySQL)
-docker compose down -v
-```
-
----
-
-## Rodando localmente (sem Docker)
-
-```bash
-# MySQL deve estar rodando na porta 3306
-mysql -u root -p < database.sql
-
-# Backend
-cd backend && npm install && npm run dev
-
-# Frontend (outro terminal)
-cd frontend && npm install && npm run dev
-```
-
-Acesse: http://localhost:5173
-
----
-
-## Testes
-
-### Testes unitários e de integração (backend)
-
-```bash
-cd backend && npm test
-# Com cobertura:
-npm run test:coverage
-```
-
-### Testes E2E (Playwright)
-
-Requer a aplicação rodando em `https://meuapp.local`.
-
-```bash
-cd e2e
-cp .env.example .env
-npm install
-npx playwright install chromium
-npm test
-```
-
----
-
-## Credenciais padrão (admin)
-
-| Campo | Valor |
-|-------|-------|
-| Email | `admin@aquawash.com` |
-| Senha | `Admin@123` |
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Admin | admin@aquawash.com | Admin@123 |
 
 ---
 
@@ -161,115 +96,191 @@ npm test
 ```
 Host (porta 80/443)
        │
-    [Nginx]  ← único serviço exposto
+    [Nginx]  ← único serviço exposto ao host
     /     \
-[frontend] [backend]  ← rede interna
+[frontend] [backend:3001]
                │
-           [MySQL]    ← rede interna
+           [MySQL:3306]
 ```
 
-- **MySQL**: dados persistidos em volume Docker (`mysql_data`)
-- **Backend**: conecta ao MySQL via rede interna, nunca exposto ao host
-- **Frontend**: build estático servido pelo Nginx interno
-- **Nginx**: único ponto de entrada, gerencia TLS e proxy
+Todos os serviços estão na rede interna `internal`. Apenas o Nginx é acessível de fora.
+
+### Serviços
+
+| Serviço | Imagem | Porta interna | Exposto ao host |
+|---|---|---|---|
+| mysql | mysql:8.0 | 3306 | ❌ |
+| backend | Dockerfile local | 3001 | ❌ |
+| frontend | Dockerfile local | 80 | ❌ |
+| nginx | nginx:1.25-alpine | 80, 443 | ✅ |
+
+### Persistência de dados
+
+O volume `mysql_data` mantém os dados do banco mesmo após `docker compose down`.
+Para apagar os dados: `docker compose down -v`
 
 ---
 
-## Segurança (Nginx)
+## Desenvolvimento local (sem Docker)
 
-Cabeçalhos HTTP configurados:
-
-| Cabeçalho | Proteção |
-|-----------|----------|
-| `X-Frame-Options: SAMEORIGIN` | Clickjacking |
-| `X-Content-Type-Options: nosniff` | MIME sniffing |
-| `Strict-Transport-Security` | Força HTTPS (HSTS) |
-| `Content-Security-Policy` | XSS e injeção de scripts |
-| `Referrer-Policy` | Vazamento de URL |
-| `Permissions-Policy` | Acesso a câmera/microfone/GPS |
-
----
-
-## Git Flow
-
-Organização de branches:
-
-```
-main        ← produção (protegida)
-dev         ← integração de features
-feature/*   ← desenvolvimento de funcionalidades
-hotfix/*    ← correções urgentes em produção
-```
-
-### Fluxo de trabalho
+### Backend
 
 ```bash
-# Nova feature
-git checkout dev
-git checkout -b feature/minha-feature
-
-# Após desenvolver
-git add .
-git commit -m "feat(escopo): descrição da mudança"
-git push -u origin feature/minha-feature
-
-# Abrir PR: feature/* → dev
-# Após aprovação e testes: dev → main
+cd backend
+npm install
+npm run dev
 ```
 
-### Padrão de commits (Conventional Commits)
+> Requer MySQL rodando localmente. Ajuste `DATABASE_URL` no `backend/.env` para `localhost`.
 
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Acesse: http://localhost:5173 (proxy `/api` → `http://localhost:3001`)
+
+---
+
+## Testes
+
+### Testes unitários e de integração (Jest)
+
+```bash
+# Rodar todos os testes do backend
+npm run test:backend
+
+# Com cobertura
+cd backend && npm run test:coverage
+```
+
+### Testes E2E (Playwright)
+
+> Requer a aplicação rodando em https://lavacar-ph.local
+
+```bash
+# Instalar browsers do Playwright (apenas na primeira vez)
+cd e2e && npx playwright install chromium
+
+# Rodar os testes
+npm run test:e2e
+
+# Rodar com interface visual
+cd e2e && npm run test:headed
+
+# Ver relatório HTML
+cd e2e && npm run test:report
+```
+
+#### Cobertura dos testes E2E
+
+| Arquivo | Cenários |
+|---|---|
+| `01-auth.spec.ts` | Login (sucesso + 3 falhas), Cadastro (sucesso + 3 falhas) |
+| `02-services.spec.ts` | CRUD Serviços: criar, listar, editar, excluir + 2 falhas |
+| `03-vehicles.spec.ts` | CRUD Veículos: criar, listar, editar, excluir + 2 falhas |
+
+---
+
+## Git Hooks (Husky)
+
+Os hooks são instalados automaticamente com `npm install` na raiz.
+
+| Hook | Quando dispara | O que faz |
+|---|---|---|
+| `commit-msg` | A cada commit | Valida mensagem com commitlint |
+| `pre-push` | Antes do push | Executa testes E2E |
+
+### Formato de commit (Conventional Commits)
+
+```
+<tipo>(<escopo opcional>): <descrição>
+```
+
+**Tipos permitidos:** `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `perf`, `revert`
+
+**Exemplos válidos:**
 ```
 feat(auth): adiciona login com Google
 fix(vehicles): corrige validação de placa duplicada
 docs: atualiza README com instruções Docker
-test(e2e): adiciona testes de CRUD de serviços
-chore: atualiza dependências do backend
+test(e2e): adiciona testes de agendamento
 ```
-
-O Husky valida automaticamente a mensagem no `commit-msg` e executa os testes E2E no `pre-push`.
 
 ---
 
-## Rotas da API
+## GitFlow — Organização de branches
 
-### Auth
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| POST | `/api/auth/login` | Login |
+```
+main          ← produção (apenas merges via PR)
+  └── dev     ← integração (base para features)
+        └── feature/<nome>   ← desenvolvimento de funcionalidades
+        └── fix/<nome>       ← correções de bugs
+        └── hotfix/<nome>    ← correções urgentes em produção
+```
 
-### Usuários
-| Método | Rota | Acesso |
-|--------|------|--------|
-| POST | `/api/users/cadastrar` | Público |
-| GET | `/api/users` | Admin |
-| GET | `/api/users/:id` | Autenticado |
-| PUT | `/api/users/:id` | Próprio usuário |
-| DELETE | `/api/users/:id` | Admin |
+**Fluxo de trabalho:**
 
-### Serviços
-| Método | Rota | Acesso |
-|--------|------|--------|
-| GET | `/api/services` | Público |
-| GET | `/api/services/admin/todos` | Admin |
-| POST | `/api/services` | Admin |
-| PUT | `/api/services/:id` | Admin |
-| DELETE | `/api/services/:id` | Admin |
+```bash
+# Criar feature a partir de dev
+git checkout dev
+git pull origin dev
+git checkout -b feature/minha-funcionalidade
 
-### Veículos
-| Método | Rota | Acesso |
-|--------|------|--------|
-| GET | `/api/vehicles/meus` | Cliente |
-| GET | `/api/vehicles` | Admin |
-| POST | `/api/vehicles` | Autenticado |
-| PUT | `/api/vehicles/:id` | Autenticado |
-| DELETE | `/api/vehicles/:id` | Autenticado |
+# Desenvolver, commitar e abrir PR para dev
+git push -u origin feature/minha-funcionalidade
 
-### Agendamentos
-| Método | Rota | Acesso |
-|--------|------|--------|
-| GET | `/api/appointments/meus` | Cliente |
-| GET | `/api/appointments` | Admin |
-| POST | `/api/appointments` | Autenticado |
-| PATCH | `/api/appointments/:id/status` | Autenticado |
-| DELETE | `/api/appointments/:id` | Autenticado |
+# Após aprovação, merge em dev
+# Quando dev estiver estável, merge em main via PR
+```
+
+---
+
+## Segurança
+
+### Cabeçalhos HTTP (Nginx)
+
+| Cabeçalho | Proteção |
+|---|---|
+| `X-Frame-Options: SAMEORIGIN` | Clickjacking |
+| `X-Content-Type-Options: nosniff` | MIME sniffing |
+| `Strict-Transport-Security` | Força HTTPS por 1 ano |
+| `Referrer-Policy` | Vazamento de URL |
+| `Permissions-Policy` | Acesso a câmera/microfone/geolocalização |
+| `Content-Security-Policy` | XSS e scripts maliciosos |
+
+### Variáveis sensíveis
+
+- Senhas, chaves JWT e credenciais de banco ficam **apenas no `.env`**
+- O `docker-compose.yml` usa `${VARIAVEL}` — nunca hardcoded
+- `.env` está no `.gitignore` e **nunca vai para o repositório**
+
+---
+
+## Comandos úteis
+
+```bash
+# Subir tudo
+docker compose up --build
+
+# Subir em background
+docker compose up -d --build
+
+# Ver logs
+docker compose logs -f
+
+# Ver logs de um serviço específico
+docker compose logs -f backend
+
+# Parar tudo
+docker compose down
+
+# Parar e apagar volumes (reseta o banco)
+docker compose down -v
+
+# Rebuild de um serviço específico
+docker compose up --build backend
+```

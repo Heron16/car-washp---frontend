@@ -59,8 +59,9 @@ export function VehiclesPage() {
       }
       setModalAberto(false);
       buscarVeiculos();
-    } catch (err: ErroApi) {
-      toast.error(err?.response?.data?.mensagem || 'Erro ao salvar');
+    } catch (err: unknown) {
+      const e = err as ErroApi;
+      toast.error(e?.response?.data?.mensagem || 'Erro ao salvar');
     } finally { setLoading(false); }
   };
 

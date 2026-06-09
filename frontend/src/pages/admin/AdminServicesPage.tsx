@@ -61,8 +61,9 @@ export function AdminServicesPage() {
       else { await api.post('/services', payload); toast.success('Serviço criado!'); }
       setModalAberto(false);
       buscarServicos();
-    } catch (err: ErroApi) {
-      toast.error(err?.response?.data?.mensagem || 'Erro ao salvar');
+    } catch (err: unknown) {
+      const e = err as ErroApi;
+      toast.error(e?.response?.data?.mensagem || 'Erro ao salvar');
     } finally { setLoading(false); }
   };
 

@@ -51,8 +51,9 @@ export function ProfilePage() {
       const { data } = await api.put<Usuario>(`/users/${usuario?.id}`, payload);
       atualizarUsuario({ ...data, id: data.id || usuario!.id });
       toast.success('Perfil atualizado!');
-    } catch (err: ErroApi) {
-      const msg = err?.response?.data?.mensagem || 'Erro ao atualizar';
+    } catch (err: unknown) {
+      const e = err as ErroApi;
+      const msg = e?.response?.data?.mensagem || 'Erro ao atualizar';
       toast.error(msg);
     } finally {
       setLoading(false);

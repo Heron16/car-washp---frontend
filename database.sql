@@ -1,15 +1,9 @@
--- ============================================================
---  AquaWash - Script de criação do banco de dados
---  Tabelas em português
--- ============================================================
-
 CREATE DATABASE IF NOT EXISTS `carwash`
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
 USE `carwash`;
 
--- Tabela: usuario
 CREATE TABLE IF NOT EXISTS `usuario` (
   `id`           VARCHAR(36)  NOT NULL DEFAULT (UUID()),
   `nome`         VARCHAR(255) NOT NULL,
@@ -25,7 +19,6 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   UNIQUE KEY `usuario_cpf_unique` (`cpf`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tabela: servico
 CREATE TABLE IF NOT EXISTS `servico` (
   `id`           VARCHAR(36)    NOT NULL DEFAULT (UUID()),
   `nome`         VARCHAR(255)   NOT NULL,
@@ -39,7 +32,6 @@ CREATE TABLE IF NOT EXISTS `servico` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tabela: veiculo
 CREATE TABLE IF NOT EXISTS `veiculo` (
   `id`           VARCHAR(36)  NOT NULL DEFAULT (UUID()),
   `usuarioId`    VARCHAR(36)  NOT NULL,
@@ -58,7 +50,6 @@ CREATE TABLE IF NOT EXISTS `veiculo` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tabela: agendamento
 CREATE TABLE IF NOT EXISTS `agendamento` (
   `id`           VARCHAR(36)   NOT NULL DEFAULT (UUID()),
   `usuarioId`    VARCHAR(36)   NOT NULL,
@@ -82,11 +73,10 @@ CREATE TABLE IF NOT EXISTS `agendamento` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dados iniciais: serviços de exemplo
 INSERT IGNORE INTO `servico` (`id`, `nome`, `descricao`, `preco`, `duracao`, `tiposVeiculo`, `ativo`) VALUES
-  (UUID(), 'Lavagem Simples',    'Lavagem externa completa com água e sabão',                          35.00,  30, 'carro,moto,suv',            1),
-  (UUID(), 'Lavagem Completa',   'Lavagem interna e externa com aspiração e limpeza de vidros',        65.00,  60, 'carro,suv,caminhao',         1),
-  (UUID(), 'Polimento',          'Polimento completo da lataria com cera protetora',                  120.00,  90, 'carro,suv',                  1),
-  (UUID(), 'Higienização',       'Higienização completa do interior com produtos especializados',     150.00, 120, 'carro,suv,caminhao',         1),
-  (UUID(), 'Lavagem Moto',       'Lavagem completa para motocicletas',                                 25.00,  20, 'moto',                       1),
-  (UUID(), 'Lavagem Caminhão',   'Lavagem externa para caminhões e veículos de grande porte',         100.00,  90, 'caminhao',                   1);
+  (UUID(), 'Lavagem Simples',   'Lavagem externa completa com água e sabão',                         35.00,  30, 'carro,moto,suv',     1),
+  (UUID(), 'Lavagem Completa',  'Lavagem interna e externa com aspiração e limpeza de vidros',       65.00,  60, 'carro,suv,caminhao',  1),
+  (UUID(), 'Polimento',         'Polimento completo da lataria com cera protetora',                 120.00,  90, 'carro,suv',           1),
+  (UUID(), 'Higienização',      'Higienização completa do interior com produtos especializados',    150.00, 120, 'carro,suv,caminhao',  1),
+  (UUID(), 'Lavagem Moto',      'Lavagem completa para motocicletas',                                25.00,  20, 'moto',                1),
+  (UUID(), 'Lavagem Caminhão',  'Lavagem externa para caminhões e veículos de grande porte',        100.00,  90, 'caminhao',            1);

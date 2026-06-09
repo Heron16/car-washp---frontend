@@ -5,7 +5,7 @@ import api from '../../services/api';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import {
-  validateEmail, validateCPF, validatePassword,
+  validateEmail, validateCPF,
   getPasswordStrength, getPasswordErrors, formatCPF,
 } from '../../utils/validators';
 import { FormCadastro, ErroApi } from '../../types';
@@ -78,8 +78,9 @@ export function RegisterPage() {
       });
       toast.success('Cadastro realizado! Faça login.');
       navigate('/login');
-    } catch (err: ErroApi) {
-      const msg = err?.response?.data?.mensagem || 'Erro ao cadastrar';
+    } catch (err: unknown) {
+      const e = err as ErroApi;
+      const msg = e?.response?.data?.mensagem || 'Erro ao cadastrar';
       toast.error(msg);
     } finally {
       setLoading(false);

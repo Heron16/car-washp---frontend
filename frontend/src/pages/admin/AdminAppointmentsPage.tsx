@@ -4,7 +4,6 @@ import api from '../../services/api';
 import { Agendamento, ResultadoPaginado, StatusAgendamento } from '../../types';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { StatusBadge } from '../../components/common/Badge';
 import { Pagination } from '../../components/common/Pagination';
 import { usePagination } from '../../hooks/usePagination';
 import { formatCurrency, formatDate } from '../../utils/validators';

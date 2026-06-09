@@ -23,11 +23,13 @@ function CardServico({ servico }: { servico: Servico }) {
 
 export function HomePage() {
   const [servicos, setServicos] = useState<Servico[]>([]);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
     api.get<ResultadoPaginado<Servico>>('/services?limite=6')
       .then((r) => setServicos(r.data.dados))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setCarregando(false));
   }, []);
 
   return (
@@ -77,7 +79,8 @@ export function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {servicos.map((s) => <CardServico key={s.id} servico={s} />)}
           </div>
-          {servicos.length === 0 && <p className="text-center text-gray-400 py-12">Carregando serviços...</p>}
+          {carregando && <p className="text-center text-gray-400 py-12">Carregando serviços...</p>}
+          {!carregando && servicos.length === 0 && <p className="text-center text-gray-400 py-12">Nenhum serviço disponível no momento.</p>}
         </div>
       </section>
 
