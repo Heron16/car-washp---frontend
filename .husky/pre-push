@@ -1,22 +1,8 @@
 #!/usr/bin/env sh
-# ============================================================
-#  Hook: pre-push
-#  Executa os testes E2E antes de enviar código ao repositório
-#  O push é bloqueado se algum teste falhar
-# ============================================================
-
-echo "🧪 Executando testes E2E antes do push..."
-echo "   (Certifique-se de que a aplicação está rodando em https://lavacar-ph.local)"
-echo ""
-
+echo "Executando testes E2E antes do push..."
 cd e2e && npm test
-
 if [ $? -ne 0 ]; then
-  echo ""
-  echo "❌ Testes E2E falharam. Push bloqueado."
-  echo "   Corrija os erros antes de fazer push."
+  echo "Testes E2E falharam. Push bloqueado."
   exit 1
 fi
-
-echo ""
-echo "✅ Todos os testes E2E passaram. Push liberado."
+echo "Todos os testes passaram. Push liberado."

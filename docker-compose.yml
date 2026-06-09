@@ -14,7 +14,6 @@ services:
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - internal
-    # porta 3306 não exposta ao host — acesso apenas pela rede interna Docker
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -76,4 +75,3 @@ volumes:
 networks:
   internal:
     driver: bridge
-    internal: false
