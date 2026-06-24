@@ -24,6 +24,7 @@ export function RegisterPage() {
   const [erros, setErros] = useState<ErrosCampos>({});
   const [tocados, setTocados] = useState<Partial<Record<keyof FormCadastro, boolean>>>({});
   const [loading, setLoading] = useState(false);
+  const [erroServidor, setErroServidor] = useState('');
 
   const set = (campo: keyof FormCadastro) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = campo === 'cpf' ? formatCPF(e.target.value) : e.target.value;
@@ -48,7 +49,7 @@ export function RegisterPage() {
         const errs = getPasswordErrors(valor);
         return errs.length > 0 ? `Senha fraca — falta: ${errs.join(', ')}` : undefined;
       }
-      case 'confirmarSenha': return valor !== form.senha ? 'As senhas não coincidem' : undefined;
+      case 'confirmarSenha': return valor && valor !== form.senha ? 'As senhas não coincidem' : undefined;
       default: return undefined;
     }
   };
@@ -81,6 +82,7 @@ export function RegisterPage() {
     } catch (err: unknown) {
       const e = err as ErroApi;
       const msg = e?.response?.data?.mensagem || 'Erro ao cadastrar';
+      setErroServidor(msg);
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -131,9 +133,15 @@ export function RegisterPage() {
               )}
             </div>
 
-            <Input label="Confirmar senha" type="password" placeholder="••••••••" value={form.confirmarSenha} onChange={set('confirmarSenha')} onBlur={handleBlur('confirmarSenha')} error={erros.confirmarSenha} />
+            <Input label="Confirmar" type="password" placeholder="••••••••" value={form.confirmarSenha} onChange={set('confirmarSenha')} onBlur={handleBlur('confirmarSenha')} error={erros.confirmarSenha} />
 
             <Button type="submit" loading={loading} className="w-full" size="lg">Criar conta</Button>
+            {erroServidor && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-300 rounded-lg">
+                <span className="text-red-500">⚠️</span>
+                <p className="text-sm text-red-700 font-medium">{erroServidor}</p>
+              </div>
+            )}
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
