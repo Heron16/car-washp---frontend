@@ -32,6 +32,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      SKIP_EMAIL_DOMAIN_CHECK: ${SKIP_EMAIL_DOMAIN_CHECK:-false}
     depends_on:
       mysql:
         condition: service_healthy
