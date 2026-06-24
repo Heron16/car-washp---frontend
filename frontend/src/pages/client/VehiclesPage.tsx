@@ -26,6 +26,7 @@ export function VehiclesPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState<Veiculo | null>(null);
   const [form, setForm] = useState<FormVeiculo>(formVazio);
+  const [erroForm, setErroForm] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { page, limit, goToPage } = usePagination();
 
@@ -37,7 +38,7 @@ export function VehiclesPage() {
 
   useEffect(() => { buscarVeiculos(); }, [page]);
 
-  const abrirCriacao = () => { setEditando(null); setForm(formVazio); setModalAberto(true); };
+  const abrirCriacao = () => { setEditando(null); setForm(formVazio); setErroForm(null); setModalAberto(true); };
   const abrirEdicao = (v: Veiculo) => {
     setEditando(v);
     setForm({ marca: v.marca, modelo: v.modelo, ano: String(v.ano), placa: v.placa, cor: v.cor, tipo: v.tipo });
@@ -46,8 +47,9 @@ export function VehiclesPage() {
 
   const handleSalvar = async () => {
     if (!form.marca || !form.modelo || !form.ano || !form.placa || !form.cor) {
-      toast.error('Preencha todos os campos'); return;
+      setErroForm('Preencha todos os campos obrigatórios'); return;
     }
+    setErroForm(null);
     setLoading(true);
     try {
       if (editando) {
@@ -61,12 +63,13 @@ export function VehiclesPage() {
       buscarVeiculos();
     } catch (err: unknown) {
       const e = err as ErroApi;
-      toast.error(e?.response?.data?.mensagem || 'Erro ao salvar');
+      const msg = e?.response?.data?.mensagem || 'Erro ao salvar';
+      setErroForm(msg);
+      toast.error(msg);
     } finally { setLoading(false); }
   };
 
   const handleExcluir = async (id: string) => {
-    if (!confirm('Remover veículo?')) return;
     try {
       await api.delete(`/vehicles/${id}`);
       toast.success('Veículo removido');
@@ -88,7 +91,7 @@ export function VehiclesPage() {
         <Card className="p-12 text-center text-gray-400">
           <p className="text-5xl mb-3">🚗</p>
           <p className="font-medium">Nenhum veículo cadastrado</p>
-          <Button onClick={abrirCriacao} className="mt-4">Adicionar primeiro veículo</Button>
+          <p className="text-sm mt-2">Clique em &quot;+ Adicionar Veículo&quot; para começar</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -125,8 +128,8 @@ export function VehiclesPage() {
           </div>
           <Input label="Placa" placeholder="ABC1234" value={form.placa} onChange={(e) => setForm((p) => ({ ...p, placa: e.target.value.toUpperCase() }))} disabled={!!editando} />
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Tipo</label>
-            <select className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" value={form.tipo} onChange={(e) => setForm((p) => ({ ...p, tipo: e.target.value as TipoVeiculo }))}>
+            <label htmlFor="tipo-veiculo" className="text-sm font-medium text-gray-700">Tipo</label>
+            <select id="tipo-veiculo" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm" value={form.tipo} onChange={(e) => setForm((p) => ({ ...p, tipo: e.target.value as TipoVeiculo }))}>
               {Object.entries(labelsTipo).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
@@ -134,6 +137,7 @@ export function VehiclesPage() {
             <Button variant="ghost" className="flex-1" onClick={() => setModalAberto(false)}>Cancelar</Button>
             <Button className="flex-1" loading={loading} onClick={handleSalvar}>Salvar</Button>
           </div>
+          {erroForm && <p className="text-sm text-red-600 text-center">{erroForm}</p>}
         </div>
       </Modal>
     </div>
