@@ -25,6 +25,7 @@ export function AdminServicesPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState<Servico | null>(null);
   const [form, setForm] = useState<FormServico>(formVazio);
+  const [erroForm, setErroForm] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { page, limit, goToPage } = usePagination();
 
@@ -36,9 +37,10 @@ export function AdminServicesPage() {
 
   useEffect(() => { buscarServicos(); }, [page]);
 
-  const abrirCriacao = () => { setEditando(null); setForm(formVazio); setModalAberto(true); };
+  const abrirCriacao = () => { setEditando(null); setForm(formVazio); setErroForm(null); setModalAberto(true); };
   const abrirEdicao = (s: Servico) => {
     setEditando(s);
+    setErroForm(null);
     const tipos = typeof s.tiposVeiculo === 'string'
       ? (s.tiposVeiculo as string).split(',') as TipoVeiculo[]
       : s.tiposVeiculo;
@@ -52,8 +54,10 @@ export function AdminServicesPage() {
   }));
 
   const handleSalvar = async () => {
-    if (!form.nome || !form.descricao || !form.preco || !form.duracao) { toast.error('Preencha todos os campos'); return; }
-    if (form.tiposVeiculo.length === 0) { toast.error('Selecione ao menos um tipo de veículo'); return; }
+    if (!form.nome || !form.descricao || !form.preco || !form.duracao) { setErroForm('Preencha todos os campos'); return; }
+    if (Number(form.preco) <= 0) { setErroForm('Preço deve ser maior que zero'); return; }
+    if (form.tiposVeiculo.length === 0) { setErroForm('Selecione ao menos um tipo de veículo'); return; }
+    setErroForm(null);
     setLoading(true);
     try {
       const payload = { ...form, preco: Number(form.preco), duracao: Number(form.duracao) };
@@ -63,12 +67,13 @@ export function AdminServicesPage() {
       buscarServicos();
     } catch (err: unknown) {
       const e = err as ErroApi;
-      toast.error(e?.response?.data?.mensagem || 'Erro ao salvar');
+      const msg = e?.response?.data?.mensagem || 'Erro ao salvar';
+      setErroForm(msg);
+      toast.error(msg);
     } finally { setLoading(false); }
   };
 
   const handleExcluir = async (id: string) => {
-    if (!confirm('Remover serviço?')) return;
     try { await api.delete(`/services/${id}`); toast.success('Serviço removido'); buscarServicos(); }
     catch { toast.error('Erro ao remover'); }
   };
@@ -85,22 +90,24 @@ export function AdminServicesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {servicos.map((s) => (
-          <Card key={s.id} className="p-5">
+        <Card key={s.id} className="p-5" data-service-name={s.nome}>
             <div className="flex items-start justify-between mb-3">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-xl">🧹</div>
               <span className={`text-xs px-2 py-0.5 rounded-full ${s.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                 {s.ativo ? 'Ativo' : 'Inativo'}
               </span>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-1">{s.nome}</h3>
-            <p className="text-sm text-gray-500 mb-3 line-clamp-2">{s.descricao}</p>
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-blue-600">{formatCurrency(s.preco)}</span>
-              <span className="text-xs text-gray-400">{s.duracao} min</span>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="flex-1" onClick={() => abrirEdicao(s)}>Editar</Button>
-              <Button variant="danger" size="sm" onClick={() => handleExcluir(s.id)}>✕</Button>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">{s.nome}</h3>
+              <p className="text-sm text-gray-500 mb-3 line-clamp-2">{s.descricao}</p>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-bold text-blue-600">{formatCurrency(s.preco)}</span>
+                <span className="text-xs text-gray-400">{s.duracao} min</span>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" className="flex-1" onClick={() => abrirEdicao(s)}>Editar</Button>
+                <Button variant="danger" size="sm" aria-label="Excluir" onClick={() => handleExcluir(s.id)}>✕</Button>
+              </div>
             </div>
           </Card>
         ))}
@@ -112,8 +119,8 @@ export function AdminServicesPage() {
         <div className="space-y-4">
           <Input label="Nome" placeholder="Lavagem Completa" value={form.nome} onChange={(e) => setForm((p) => ({ ...p, nome: e.target.value }))} />
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Descrição</label>
-            <textarea className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm resize-none" rows={3} value={form.descricao} onChange={(e) => setForm((p) => ({ ...p, descricao: e.target.value }))} />
+            <label htmlFor="descricao-servico" className="text-sm font-medium text-gray-700">Descrição</label>
+            <textarea id="descricao-servico" className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm resize-none" rows={3} value={form.descricao} onChange={(e) => setForm((p) => ({ ...p, descricao: e.target.value }))} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label="Preço (R$)" type="number" placeholder="50" value={form.preco} onChange={(e) => setForm((p) => ({ ...p, preco: e.target.value }))} />
@@ -138,6 +145,7 @@ export function AdminServicesPage() {
             <Button variant="ghost" className="flex-1" onClick={() => setModalAberto(false)}>Cancelar</Button>
             <Button className="flex-1" loading={loading} onClick={handleSalvar}>Salvar</Button>
           </div>
+          {erroForm && <p className="text-sm text-red-600 text-center">{erroForm}</p>}
         </div>
       </Modal>
     </div>
