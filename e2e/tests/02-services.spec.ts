@@ -30,13 +30,36 @@ test.describe('CRUD de Serviços', () => {
 
   test('sucesso — editar serviço existente', async ({ page }) => {
     const suffix = uniqueSuffix();
+    const nomeOriginal = `Para Editar ${suffix}`;
+    const nomeEditado = `Serviço Editado ${suffix}`;
+
     await page.goto('/admin/servicos');
-    await page.getByRole('button', { name: /editar/i }).first().click();
+
+    // Cria um serviço temporário para editar
+    await page.getByRole('button', { name: /novo serviço|adicionar|criar/i }).click();
+    await page.getByLabel(/nome/i).fill(nomeOriginal);
+    await page.getByLabel(/descrição|descricao/i).fill('Será editado');
+    await page.getByLabel(/preço|preco/i).fill('40');
+    await page.getByLabel(/duração|duracao/i).fill('25');
+    const carroCheck = page.getByLabel(/carro/i).first();
+    if (await carroCheck.isVisible()) await carroCheck.check();
+    await page.getByRole('button', { name: /salvar|confirmar|criar/i }).click();
+    await expect(page.getByText(nomeOriginal)).toBeVisible();
+
+    // Edita o serviço criado
+    const linha = page.getByText(nomeOriginal).locator('..').locator('..');
+    await linha.getByRole('button', { name: /editar/i }).click();
     const nomeInput = page.getByLabel(/nome/i);
     await nomeInput.clear();
-    await nomeInput.fill(`Serviço Editado ${suffix}`);
+    await nomeInput.fill(nomeEditado);
     await page.getByRole('button', { name: /salvar|confirmar|atualizar/i }).click();
-    await expect(page.getByText(`Serviço Editado ${suffix}`)).toBeVisible();
+    await expect(page.getByText(nomeEditado)).toBeVisible();
+
+    // Limpa — exclui o serviço editado
+    const linhaEditada = page.getByText(nomeEditado).locator('..').locator('..');
+    await linhaEditada.getByRole('button', { name: /excluir|deletar|remover/i }).click();
+    const confirmar = page.getByRole('button', { name: /confirmar|sim|excluir/i });
+    if (await confirmar.isVisible({ timeout: 2000 }).catch(() => false)) await confirmar.click();
   });
 
   test('sucesso — excluir serviço', async ({ page }) => {

@@ -7,6 +7,30 @@ export function uniqueSuffix(): string {
   return Date.now().toString().slice(-6);
 }
 
+// Lista de CPFs válidos para rotação nos testes
+const VALID_CPFS = [
+  '349.749.030-04',
+  '594.267.810-30',
+  '271.875.462-11',
+  '141.477.793-01',
+  '460.396.177-48',
+  '319.034.725-55',
+  '472.554.666-64',
+  '597.974.213-17',
+  '728.705.577-52',
+  '664.414.951-04',
+  '996.337.553-79',
+  '323.753.104-97',
+  '996.592.403-17',
+  '494.237.771-47',
+  '559.794.478-90',
+];
+
+let cpfIndex = 0;
+export function uniqueCPF(): string {
+  return VALID_CPFS[cpfIndex++ % VALID_CPFS.length];
+}
+
 export async function loginAs(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/login');
   await page.getByLabel(/e-mail/i).fill(email);

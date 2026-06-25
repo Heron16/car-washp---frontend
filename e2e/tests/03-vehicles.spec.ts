@@ -3,23 +3,30 @@ import { loginAs, uniqueSuffix } from './helpers';
 
 const CLIENT_EMAIL    = 'cliente.e2e@gmail.com';
 const CLIENT_PASSWORD = 'Senha@123';
-const CLIENT_CPF      = '529.982.247-25';
 
 test.describe('CRUD de Veículos', () => {
 
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
-    await page.goto('/cadastro');
-    try {
+
+    // Tenta login primeiro — se funcionar, o usuário já existe
+    await page.goto('/login');
+    await page.getByLabel(/e-mail/i).fill(CLIENT_EMAIL);
+    await page.getByLabel(/senha/i).fill(CLIENT_PASSWORD);
+    await page.getByRole('button', { name: /entrar/i }).click();
+
+    const logado = await page.waitForURL(/\/dashboard/, { timeout: 5000 }).then(() => true).catch(() => false);
+
+    if (!logado) {
+      await page.goto('/cadastro');
       await page.getByLabel(/nome/i).fill('Cliente E2E Veículos');
       await page.getByLabel(/e-mail/i).fill(CLIENT_EMAIL);
-      await page.getByLabel(/cpf/i).fill(CLIENT_CPF);
+      await page.getByLabel(/cpf/i).fill('559.794.478-90');
       await page.getByLabel(/senha/i).fill(CLIENT_PASSWORD);
       await page.getByRole('button', { name: /cadastrar|criar conta/i }).click();
-      await page.waitForURL(/\/(login|dashboard)/, { timeout: 5000 });
-    } catch {
-      // usuário já existe
+      await page.waitForURL(/\/(login|dashboard)/, { timeout: 10000 }).catch(() => {});
     }
+
     await page.close();
   });
 
